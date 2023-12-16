@@ -34,15 +34,15 @@ iterative = subparsers.add_parser("iterative")
 continuous = subparsers.add_parser("continuous")
 
 direct.add_argument("--era5_dir")
-direct.add_argument("--model", choices=["resnet", "unet", "vit"])
+direct.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn"])
 direct.add_argument("--pred_range", type=int, choices=[6, 24, 72, 120, 240])
 
 iterative.add_argument("--era5_dir")
-iterative.add_argument("--model", choices=["resnet", "unet", "vit"])
+iterative.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn"])
 iterative.add_argument("--pred_range", type=int, choices=[6, 24, 72, 120, 240])
 
 continuous.add_argument("--era5_dir")
-continuous.add_argument("--model", choices=["resnet", "unet", "vit"])
+continuous.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn"])
 
 args = parser.parse_args()
 
@@ -147,6 +147,19 @@ elif args.model == "unet":
         "is_attn": (False, False, False),
     }
 elif args.model == "vit":
+    model_kwargs = {  # override some of the defaults
+        "img_size": (32, 64),
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "history": history,
+        "patch_size": 2,
+        "embed_dim": 128,
+        "depth": 8,
+        "decoder_depth": 2,
+        "learn_pos_emb": True,
+        "num_heads": 4,
+    }
+elif args.model == "vit_swin_attn":
     model_kwargs = {  # override some of the defaults
         "img_size": (32, 64),
         "in_channels": in_channels,
