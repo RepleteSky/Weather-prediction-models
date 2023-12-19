@@ -19,7 +19,7 @@ from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
 parser = ArgumentParser()
 
-parser.add_argument("--summary_depth", type=int, default=1)
+parser.add_argument("--summary_depth", type=int, default=1000)
 parser.add_argument("--max_epochs", type=int, default=50)
 parser.add_argument("--patience", type=int, default=5)
 parser.add_argument("--gpu", type=int, default=-1)
