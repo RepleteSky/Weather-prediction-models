@@ -13,6 +13,7 @@ from pytorch_lightning.callbacks import (
     ModelCheckpoint,
     RichModelSummary,
     RichProgressBar,
+    DeviceStatsMonitor,
 )
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
@@ -152,7 +153,7 @@ elif args.model == "vit":
         "in_channels": in_channels,
         "out_channels": out_channels,
         "history": history,
-        "patch_size": 2,
+        "patch_size": 1,
         "embed_dim": 128,
         "depth": 8,
         "decoder_depth": 2,
@@ -165,7 +166,7 @@ elif args.model == "vit_swin_attn":
         "in_channels": in_channels,
         "out_channels": out_channels,
         "history": history,
-        "patch_size": 2,
+        "patch_size": 1,
         "embed_dim": 128,
         "depth": 8,
         "decoder_depth": 2,
@@ -204,6 +205,7 @@ callbacks = [
         filename="epoch_{epoch:03d}",
         auto_insert_metric_name=False,
     ),
+    DeviceStatsMonitor()
 ]
 trainer = pl.Trainer(
     logger=logger,

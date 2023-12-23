@@ -162,13 +162,14 @@ cython_debug/
 # Ignore checkpoint files
 *.ckpt
 checkpoints/
-savelog/
+savelog*/
 pythonpath.txt
 dataset/
 notebooks/
 sh/
 tests/
 original_models/
+MoXI/
 
 
 

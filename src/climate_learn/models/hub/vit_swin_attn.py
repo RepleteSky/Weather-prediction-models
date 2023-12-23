@@ -359,7 +359,7 @@ class SwinTransformer(nn.Module):
                     dim=embed_dim,
                     input_resolution=(img_size[0] // patch_size, img_size[1] // patch_size),
                     num_heads=num_heads,
-                    window_size=16,
+                    window_size=8,
                     shift_size=0,
                     mlp_ratio=mlp_ratio,
                     qkv_bias=True,
