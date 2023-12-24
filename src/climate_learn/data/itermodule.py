@@ -44,7 +44,7 @@ class IterDataModule(pl.LightningDataModule):
         buffer_size=10000,
         batch_size=64,
         num_workers=0,
-        pin_memory=False,
+        pin_memory=True,
     ):
         super().__init__()
         self.save_hyperparameters(logger=False)

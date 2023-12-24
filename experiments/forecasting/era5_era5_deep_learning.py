@@ -35,15 +35,15 @@ iterative = subparsers.add_parser("iterative")
 continuous = subparsers.add_parser("continuous")
 
 direct.add_argument("--era5_dir")
-direct.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn"])
+direct.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn"])
 direct.add_argument("--pred_range", type=int, choices=[6, 24, 72, 120, 240])
 
 iterative.add_argument("--era5_dir")
-iterative.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn"])
+iterative.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn"])
 iterative.add_argument("--pred_range", type=int, choices=[6, 24, 72, 120, 240])
 
 continuous.add_argument("--era5_dir")
-continuous.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn"])
+continuous.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn"])
 
 args = parser.parse_args()
 
@@ -67,8 +67,8 @@ history = 1
 window = 1
 subsample = 6
 batch_size = 128
-num_workers = 1
-
+num_workers = 4
+patch_size = 1
 
 in_vars = []
 for var in variables:
@@ -153,7 +153,7 @@ elif args.model == "vit":
         "in_channels": in_channels,
         "out_channels": out_channels,
         "history": history,
-        "patch_size": 1,
+        "patch_size": patch_size,
         "embed_dim": 128,
         "depth": 8,
         "decoder_depth": 2,
@@ -166,7 +166,20 @@ elif args.model == "vit_swin_attn":
         "in_channels": in_channels,
         "out_channels": out_channels,
         "history": history,
-        "patch_size": 1,
+        "patch_size": patch_size,
+        "embed_dim": 128,
+        "depth": 8,
+        "decoder_depth": 2,
+        "learn_pos_emb": True,
+        "num_heads": 4,
+    }
+elif args.model == "vit_primal_attn":
+    model_kwargs = {  # override some of the defaults
+        "img_size": (32, 64),
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "history": history,
+        "patch_size": patch_size,
         "embed_dim": 128,
         "depth": 8,
         "decoder_depth": 2,

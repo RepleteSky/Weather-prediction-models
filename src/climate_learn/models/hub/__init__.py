@@ -6,4 +6,6 @@ from .resnet import ResNet
 from .unet import Unet
 from .utils import MODEL_REGISTRY
 from .vit import VisionTransformer
+from .vit_original import OriginalVisionTransformer
 from .vit_swin_attn import SwinTransformer
+from .vit_primal_attn import PrimalVisionTransformer
