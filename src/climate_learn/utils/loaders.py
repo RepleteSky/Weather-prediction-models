@@ -15,7 +15,8 @@ from ..models.hub import (
     Unet,
     VisionTransformer,
     SwinTransformer,
-    PrimalVisionTransformer
+    PrimalVisionTransformer,
+    RetentiveMeetVisionTransformer,
 )
 from ..models.lr_scheduler import LinearWarmupCosineAnnealingLR
 from ..transforms import TRANSFORMS_REGISTRY

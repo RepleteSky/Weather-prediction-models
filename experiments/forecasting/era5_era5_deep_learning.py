@@ -35,15 +35,15 @@ iterative = subparsers.add_parser("iterative")
 continuous = subparsers.add_parser("continuous")
 
 direct.add_argument("--era5_dir")
-direct.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn"])
-direct.add_argument("--pred_range", type=int, choices=[6, 24, 72, 120, 240])
+direct.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn", "vit_rmt_attn"])
+direct.add_argument("--pred_range", type=int, choices=[6, 24, 48, 72, 120, 240])
 
 iterative.add_argument("--era5_dir")
-iterative.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn"])
-iterative.add_argument("--pred_range", type=int, choices=[6, 24, 72, 120, 240])
+iterative.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn", "vit_rmt_attn"])
+iterative.add_argument("--pred_range", type=int, choices=[6, 24, 48, 72, 120, 240])
 
 continuous.add_argument("--era5_dir")
-continuous.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn"])
+continuous.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn", "vit_rmt_attn"])
 
 args = parser.parse_args()
 
@@ -59,6 +59,7 @@ variables = [
     "10m_u_component_of_wind",
     "10m_v_component_of_wind",
     "toa_incident_solar_radiation",
+    "total_precipitation",
     "land_sea_mask",
     "orography",
     "lattitude",
@@ -78,7 +79,7 @@ for var in variables:
     else:
         in_vars.append(var)
 if args.forecast_type in ("direct", "continuous"):
-    out_variables = ["2m_temperature", "geopotential_500", "temperature_850"]
+    out_variables = ["2m_temperature", "geopotential_500", "temperature_850", "total_precipitation"]
 elif args.forecast_type == "iterative":
     out_variables = variables
 out_vars = []
@@ -125,13 +126,13 @@ elif args.forecast_type == "continuous":
 dm.setup()
 
 # Set up deep learning model
-in_channels = 49
+in_channels = 50
 if args.forecast_type == "continuous":
     in_channels += 1  # time dimension
 if args.forecast_type == "iterative":  # iterative predicts every var
     out_channels = in_channels
 else:
-    out_channels = 3
+    out_channels = 4
 if args.model == "resnet":
     model_kwargs = {  # override some of the defaults
         "in_channels": in_channels,
@@ -185,6 +186,19 @@ elif args.model == "vit_primal_attn":
         "decoder_depth": 2,
         "learn_pos_emb": True,
         "num_heads": 4,
+    }
+elif args.model == "vit_rmt_attn":
+    model_kwargs = {  # override some of the defaults
+        "img_size": (32, 64),
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "history": history,
+        "patch_size": patch_size,
+        "embed_dims": [128, 128, 128, 128],
+        "depths": [2, 2, 2, 2],
+        "decoder_depth": 2,
+        "learn_pos_emb": False,
+        "num_heads": [4, 4, 4, 4],
     }
 optim_kwargs = {"lr": 5e-4, "weight_decay": 1e-5, "betas": (0.9, 0.99)}
 sched_kwargs = {
@@ -302,7 +316,7 @@ else:
         train_loss=None,
         val_loss=None,
         test_loss=model.test_loss,
-        test_target_tranfsorms=model.test_target_transforms,
+        test_target_transforms=model.test_target_transforms,
     )
     if args.forecast_type == "direct":
         trainer.test(model, datamodule=dm)

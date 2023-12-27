@@ -11,7 +11,7 @@ from timm.models.vision_transformer import LayerScale, PatchEmbed, trunc_normal_
 
 
 class PrimalAttention(nn.Module):
-    def __init__(self, dim, num_heads=8, embed_len=197, low_rank=200, rank_multi=10, \
+    def __init__(self, dim, num_heads=8, embed_len=197, low_rank=20, rank_multi=10, \
                 qk_bias=False, attn_drop=0., proj_drop=0., norm_layer=nn.LayerNorm):
         super().__init__()
         assert dim % num_heads == 0, 'dim should be divisible by num_heads'
