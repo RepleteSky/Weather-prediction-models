@@ -17,6 +17,7 @@ from ..models.hub import (
     SwinTransformer,
     PrimalVisionTransformer,
     RetentiveMeetVisionTransformer,
+    MlpMixer
 )
 from ..models.lr_scheduler import LinearWarmupCosineAnnealingLR
 from ..transforms import TRANSFORMS_REGISTRY

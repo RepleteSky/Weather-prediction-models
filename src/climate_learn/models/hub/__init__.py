@@ -10,4 +10,5 @@ from .vit_original import OriginalVisionTransformer
 from .vit_swin_attn import SwinTransformer
 from .vit_primal_attn import PrimalVisionTransformer
 from .vit_rmt_attn import RetentiveMeetVisionTransformer
+from .mlp_mixer import MlpMixer
 

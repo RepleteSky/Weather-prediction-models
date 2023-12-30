@@ -35,7 +35,7 @@ iterative = subparsers.add_parser("iterative")
 continuous = subparsers.add_parser("continuous")
 
 direct.add_argument("--era5_dir")
-direct.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn", "vit_rmt_attn"])
+direct.add_argument("--model", choices=["resnet", "unet", "vit", "vit_swin_attn", "vit_primal_attn", "vit_rmt_attn", "mlp_mixer"])
 direct.add_argument("--pred_range", type=int, choices=[6, 24, 48, 72, 120, 240])
 
 iterative.add_argument("--era5_dir")
@@ -199,6 +199,17 @@ elif args.model == "vit_rmt_attn":
         "decoder_depth": 2,
         "learn_pos_emb": False,
         "num_heads": [4, 4, 4, 4],
+    }
+elif args.model == "mlp_mixer":
+    model_kwargs = {  # override some of the defaults
+        "img_size": (32, 64),
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "history": history,
+        "patch_size": patch_size,
+        "embed_dim": 128,
+        "depth": 8,
+        "decoder_depth": 2,
     }
 optim_kwargs = {"lr": 5e-4, "weight_decay": 1e-5, "betas": (0.9, 0.99)}
 sched_kwargs = {
