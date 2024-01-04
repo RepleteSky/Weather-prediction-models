@@ -7,7 +7,9 @@ from climate_learn.models.hub import (
     SwinTransformer,
     PrimalVisionTransformer,
     RetentiveMeetVisionTransformer,
-    MlpMixer
+    MlpMixer,
+    MlpTempMixer,
+    TemporalVisionTransformer
 )
 
 # Third party
@@ -168,6 +170,58 @@ class TestForecastingModels:
         print("\npred_shape = "+str(pred.shape))
         assert pred.shape == target.shape
 
+    def test_mlp_temp_mixer(self, same_out_channels):
+        if same_out_channels:
+            out_channels = self.num_channels
+            target = self.y_same_channels
+        else:
+            out_channels = self.out_channels
+            target = self.y_diff_channels
+        print("MLP temp mixer")
+        print("x_shape = "+str(self.x.shape))
+        print("y_shape = "+str(target.shape))
+        model = MlpTempMixer(
+            (self.height, self.width),
+            self.num_channels,
+            out_channels,
+            self.history,
+            patch_size=2,
+            embed_dim=128,
+            depth=8,
+            decoder_depth=2,
+        )
+        model.to(self.device)
+        pred = model(self.x)
+        print("\npred_shape = "+str(pred.shape))
+        assert pred.shape == target.shape
+
+    def test_vit_temp(self, same_out_channels):
+        if same_out_channels:
+            out_channels = self.num_channels
+            target = self.y_same_channels
+        else:
+            out_channels = self.out_channels
+            target = self.y_diff_channels
+        print("Temporal Vision Transformer")
+        print("x_shape = "+str(self.x.shape))
+        print("y_shape = "+str(target.shape))
+        model = TemporalVisionTransformer(
+            (self.height, self.width),
+            self.num_channels,
+            out_channels,
+            self.history,
+            patch_size=1,
+            embed_dim=128,
+            depth=8,
+            decoder_depth=2,
+            learn_pos_emb=True,
+            num_heads=4
+        )
+        model.to(self.device)
+        pred = model(self.x)
+        print("\npred_shape = "+str(pred.shape))
+        assert pred.shape == target.shape
+
 def main():
     parser = ArgumentParser(description="Test DL models.")
     parser.add_argument("--model")
@@ -199,7 +253,10 @@ def main():
         testModel.test_retentive_vit(same_out_channels=args.is_same_channels)
     elif(args.model == "mlp"):
         testModel.test_mlp_mixer(same_out_channels=args.is_same_channels)
-
+    elif(args.model == "mlp_temp"):
+        testModel.test_mlp_temp_mixer(same_out_channels=args.is_same_channels)
+    elif(args.model == "vit_temp"):
+        testModel.test_vit_temp(same_out_channels=args.is_same_channels)
 
 if __name__ == "__main__":
     main()

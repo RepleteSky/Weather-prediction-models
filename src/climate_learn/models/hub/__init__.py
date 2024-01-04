@@ -11,4 +11,6 @@ from .vit_swin_attn import SwinTransformer
 from .vit_primal_attn import PrimalVisionTransformer
 from .vit_rmt_attn import RetentiveMeetVisionTransformer
 from .mlp_mixer import MlpMixer
+from .mlp_temp_mixer import MlpTempMixer
+from .vit_temporal import TemporalVisionTransformer
 
