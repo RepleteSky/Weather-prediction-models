@@ -68,8 +68,8 @@ history = 1
 window = 1
 subsample = 6
 batch_size = 128
-num_workers = 4
-patch_size = 1
+num_workers = 1
+patch_size = 2
 
 in_vars = []
 for var in variables:
@@ -359,3 +359,15 @@ else:
         iterative_testing(model, trainer, args, from_checkpoint=True)
     elif args.forecast_type == "continuous":
         continuous_testing(model, trainer, args, from_checkpoint=True)
+
+# visualize
+# denorm = model.test_target_transforms[0]
+# in_graphic = cl.utils.visualize_at_index(
+#     model.to(device="cuda:0"),
+#     dm,
+#     in_transform=denorm,
+#     out_transform=denorm,
+#     variable="total_precipitation",
+#     src="era5",
+#     index=2
+# )

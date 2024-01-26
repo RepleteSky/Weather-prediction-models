@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.colors as mcolors
 import numpy as np
 from scipy.stats import rankdata
 from tqdm import tqdm
@@ -8,9 +9,11 @@ from ..data.processing.cmip6_constants import VAR_TO_UNIT as CMIP6_VAR_TO_UNIT
 
 
 def visualize_at_index(mm, dm, in_transform, out_transform, variable, src, index=0):
+    model = "del_1c"
     lat, lon = dm.get_lat_lon()
     extent = [lon.min(), lon.max(), lat.min(), lat.max()]
     channel = dm.hparams.out_vars.index(variable)
+    # input_channel = [dm.hparams.in_vars.index("relative_humidity_850"),dm.hparams.in_vars.index("2m_temperature")]
     history = dm.hparams.history
     if src == "era5":
         variable_with_units = f"{variable} ({ERA5_VAR_TO_UNIT[variable]})"
@@ -29,6 +32,8 @@ def visualize_at_index(mm, dm, in_transform, out_transform, variable, src, index
         if index in range(counter, counter + batch_size):
             adj_index = index - counter
             x = x.to(mm.device)
+            # x[:,:,input_channel] = 0
+            # assert 1 == 2
             pred = mm.forward(x)
             break
         counter += batch_size
@@ -40,39 +45,41 @@ def visualize_at_index(mm, dm, in_transform, out_transform, variable, src, index
         xx = xx[:, :-1]
 
     # Create animation/plot of the input sequence
-    if history > 1:
-        in_fig, in_ax = plt.subplots()
-        in_ax.set_title(f"Input Sequence: {variable_with_units}")
-        in_ax.set_xlabel("Longitude")
-        in_ax.set_ylabel("Latitude")
-        imgs = []
-        for time_step in range(history):
-            img = in_transform(xx[time_step])[channel].detach().cpu().numpy()
-            if src == "era5":
-                img = np.flip(img, 0)
-            img = in_ax.imshow(img, cmap=plt.cm.coolwarm, animated=True, extent=extent)
-            imgs.append([img])
-        cax = in_fig.add_axes(
-            [
-                in_ax.get_position().x1 + 0.02,
-                in_ax.get_position().y0,
-                0.02,
-                in_ax.get_position().y1 - in_ax.get_position().y0,
-            ]
-        )
-        in_fig.colorbar(in_ax.get_images()[0], cax=cax)
-        anim = animation.ArtistAnimation(in_fig, imgs, interval=1000, repeat_delay=2000)
-        plt.close()
-    else:
-        if dm.hparams.task == "downscaling":
-            img = in_transform(xx)[channel].detach().cpu().numpy()
-        else:
-            img = in_transform(xx[0])[channel].detach().cpu().numpy()
-        if src == "era5":
-            img = np.flip(img, 0)
-        visualize_sample(img, extent, f"Input: {variable_with_units}")
-        anim = None
-        plt.show()
+    # if history > 1:
+    #     in_fig, in_ax = plt.subplots()
+    #     in_ax.set_title(f"Input Sequence: {variable_with_units}")
+    #     in_ax.set_xlabel("Longitude")
+    #     in_ax.set_ylabel("Latitude")
+    #     imgs = []
+    #     for time_step in range(history):
+    #         img = in_transform(xx[time_step])[channel].detach().cpu().numpy()
+    #         if src == "era5":
+    #             img = np.flip(img, 0)
+    #         img = in_ax.imshow(img, cmap=plt.cm.coolwarm, animated=True, extent=extent)
+    #         imgs.append([img])
+    #     cax = in_fig.add_axes(
+    #         [
+    #             in_ax.get_position().x1 + 0.02,
+    #             in_ax.get_position().y0,
+    #             0.02,
+    #             in_ax.get_position().y1 - in_ax.get_position().y0,
+    #         ]
+    #     )
+    #     in_fig.colorbar(in_ax.get_images()[0], cax=cax)
+    #     anim = animation.ArtistAnimation(in_fig, imgs, interval=1000, repeat_delay=2000)
+    #     plt.close()
+    # else:
+    #     if dm.hparams.task == "downscaling":
+    #         img = in_transform(xx)[channel].detach().cpu().numpy()
+    #     else:
+    #         img = in_transform(xx[0][input_channel])[channel].detach().cpu().numpy()
+    #     if src == "era5":
+    #         img = np.flip(img, 0)
+    #     visualize_sample(img, extent, f"Input: {variable_with_units}")
+    #     anim = None
+    #     plt.savefig("savefig/"+variable+"_initial.pdf", bbox_inches='tight')
+        # plt.show()
+
 
     # Plot the ground truth
     yy = out_transform(y[adj_index])
@@ -80,7 +87,7 @@ def visualize_at_index(mm, dm, in_transform, out_transform, variable, src, index
     if src == "era5":
         yy = np.flip(yy, 0)
     visualize_sample(yy, extent, f"Ground truth: {variable_with_units}")
-    plt.show()
+    plt.savefig("savefig/"+model+"_"+variable+"_gt.pdf", bbox_inches='tight')
 
     # Plot the prediction
     ppred = out_transform(pred[adj_index])
@@ -88,15 +95,17 @@ def visualize_at_index(mm, dm, in_transform, out_transform, variable, src, index
     if src == "era5":
         ppred = np.flip(ppred, 0)
     visualize_sample(ppred, extent, f"Prediction: {variable_with_units}")
-    plt.show()
+    plt.savefig("savefig/"+model+"_"+variable+"_pred.pdf", bbox_inches='tight')
+    # plt.show()
 
     # Plot the bias
     bias = ppred - yy
-    visualize_sample(bias, extent, f"Bias: {variable_with_units}")
-    plt.show()
+    visualize_bias_sample(bias, extent, f"Bias: {variable_with_units}")
+    plt.savefig("savefig/"+model+"_"+variable+"_bias.pdf", bbox_inches='tight')
+    # plt.show()
 
     # None, if no history
-    return anim
+    # return anim
 
 
 def visualize_sample(img, extent, title):
@@ -118,6 +127,28 @@ def visualize_sample(img, extent, title):
     fig.colorbar(ax.get_images()[0], cax=cax)
     return (fig, ax)
 
+
+def visualize_bias_sample(img, extent, title):
+    fig, ax = plt.subplots()
+    ax.set_title(title)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    cmap = plt.cm.coolwarm
+    cmap.set_bad("black", 1)
+    # 中央値を白に設定するための正規化
+    norm = mcolors.TwoSlopeNorm(vmin=img.min(), vcenter=0, vmax=img.max())
+    ax.imshow(img, cmap=cmap, norm=norm, extent=extent)
+    cax = fig.add_axes(
+        [
+            ax.get_position().x1 + 0.02,
+            ax.get_position().y0,
+            0.02,
+            ax.get_position().y1 - ax.get_position().y0,
+        ]
+    )
+    cbar = fig.colorbar(ax.get_images()[0], cax=cax, ticks=[img.min(), 0, img.max()])
+    cbar.ax.tick_params(width=0.1)
+    return (fig, ax)
 
 def visualize_mean_bias(dm, mm, out_transform, variable, src):
     lat, lon = dm.get_lat_lon()

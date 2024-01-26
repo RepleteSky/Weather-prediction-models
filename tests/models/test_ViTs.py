@@ -51,7 +51,7 @@ class TestForecastingModels:
             self.num_channels,
             out_channels,
             self.history,
-            patch_size=1,
+            patch_size=2,
             embed_dim=128,
             depth=8,
             decoder_depth=2,

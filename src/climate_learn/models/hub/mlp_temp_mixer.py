@@ -99,7 +99,7 @@ class MlpTempMixer(nn.Module):
         self.norm = norm_layer(embed_dim)
 
         # Reduction of time dimension
-        self.blend = nn.Linear(self.num_patches*history, self.num_patches)
+        # self.blend = nn.Linear(self.num_patches*history, self.num_patches)
         # Decoder
         self.head = nn.ModuleList()
         for _ in range(decoder_depth):
@@ -130,21 +130,21 @@ class MlpTempMixer(nn.Module):
         c = self.out_channels
         h = self.img_size[0] // p
         w = self.img_size[1] // p
-        assert h * w == x.shape[1]
-        x = x.reshape(shape=(x.shape[0], h, w, p, p, c))
-        x = torch.einsum("nhwpqc->nchpwq", x)
-        imgs = x.reshape(shape=(x.shape[0], c, h * p, w * p))
+        assert h * w == x.shape[2]
+        x = x.reshape(shape=(x.shape[0], x.shape[1], h, w, p, p, c))
+        x = torch.einsum("nthwpqc->ntchpwq", x)
+        imgs = x.reshape(shape=(x.shape[0], x.shape[1], c, h * p, w * p))
         return imgs
 
-    def blender(self, x):
-        """
-        x: (B, T, num_patches, embed_dim)
-        return imgs: (B, num_patches, embed_dim)
-        """
-        if len(x.shape) == 4:  # x.shape = [B,T,num_patches,embed_dim]
-            x = x.flatten(1, 2)
-        x = self.blend(x.transpose(1, 2)).transpose(1, 2)
-        return x
+    # def blender(self, x):
+    #     """
+    #     x: (B, T, num_patches, embed_dim)
+    #     return imgs: (B, num_patches, embed_dim)
+    #     """
+    #     if len(x.shape) == 4:  # x.shape = [B,T,num_patches,embed_dim]
+    #         x = x.flatten(1, 2)
+    #     x = self.blend(x.transpose(1, 2)).transpose(1, 2)
+    #     return x
 
     def forward_encoder(self, x):
         embeds = []
@@ -160,10 +160,10 @@ class MlpTempMixer(nn.Module):
         x = self.forward_encoder(x)
         # x.shape = [B,T,num_patches,embed_dim]
         # x = self.blender(x)
-        x = x[:, 0].squeeze(1)
         # x.shape = [B,num_patches,embed_dim]
         x = self.head(x)
         # x.shape = [B,num_patches,embed_dim]
         preds = self.unpatchify(x)
+        preds = preds[:,0].squeeze(1)
         # preds.shape = [B,out_channels,H,W]
         return preds
